@@ -1,31 +1,4 @@
-
-<style>
-  body { margin: 0; }
-  pre { margin: 0; overflow-x: auto; }
-  .code-wrap { background: #1e1e1e; border-radius: var(--border-radius-lg); overflow: hidden; }
-  .code-header { background: #2d2d2d; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
-  .code-title { color: #ccc; font-size: 13px; font-family: monospace; }
-  .copy-btn { background: transparent; border: 0.5px solid #555; color: #ccc; font-size: 12px; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
-  .copy-btn:hover { background: #444; }
-  code { display: block; padding: 16px; font-size: 12.5px; line-height: 1.6; font-family: monospace; color: #d4d4d4; white-space: pre; }
-  .kw { color: #569cd6; }
-  .fn { color: #dcdcaa; }
-  .str { color: #ce9178; }
-  .num { color: #b5cea8; }
-  .cm { color: #6a9955; }
-  .const { color: #9cdcfe; }
-</style>
-
-<div class="code-wrap">
-  <div class="code-header">
-    <span class="code-title">index.html — Bulgarian Matrix</span>
-    <button class="copy-btn" id="copy-btn">Copy</button>
-  </div>
-  <pre><code id="code-block"></code></pre>
-</div>
-
-<script>
-const raw = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
@@ -143,16 +116,6 @@ const raw = `<!DOCTYPE html>
   document.getElementById('speed-slider').addEventListener('input', function () {
     speed = parseInt(this.value);
   });
-<\/script>
-</body>
-</html>`;
-
-document.getElementById('code-block').textContent = raw;
-
-document.getElementById('copy-btn').addEventListener('click', function() {
-  navigator.clipboard.writeText(raw).then(() => {
-    this.textContent = 'Copied!';
-    setTimeout(() => this.textContent = 'Copy', 2000);
-  });
-});
 </script>
+</body>
+</html>
