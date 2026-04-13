@@ -1,0 +1,158 @@
+
+<style>
+  body { margin: 0; }
+  pre { margin: 0; overflow-x: auto; }
+  .code-wrap { background: #1e1e1e; border-radius: var(--border-radius-lg); overflow: hidden; }
+  .code-header { background: #2d2d2d; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
+  .code-title { color: #ccc; font-size: 13px; font-family: monospace; }
+  .copy-btn { background: transparent; border: 0.5px solid #555; color: #ccc; font-size: 12px; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
+  .copy-btn:hover { background: #444; }
+  code { display: block; padding: 16px; font-size: 12.5px; line-height: 1.6; font-family: monospace; color: #d4d4d4; white-space: pre; }
+  .kw { color: #569cd6; }
+  .fn { color: #dcdcaa; }
+  .str { color: #ce9178; }
+  .num { color: #b5cea8; }
+  .cm { color: #6a9955; }
+  .const { color: #9cdcfe; }
+</style>
+
+<div class="code-wrap">
+  <div class="code-header">
+    <span class="code-title">index.html — Bulgarian Matrix</span>
+    <button class="copy-btn" id="copy-btn">Copy</button>
+  </div>
+  <pre><code id="code-block"></code></pre>
+</div>
+
+<script>
+const raw = `<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Българска Матрица</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; display: flex; flex-direction: column;
+           align-items: center; justify-content: center;
+           min-height: 100vh; font-family: monospace; }
+    canvas { display: block; }
+    #controls { margin-top: 16px; display: flex; gap: 12px; align-items: center; }
+    button { background: rgba(0,40,0,0.8); border: 1px solid #0f0;
+             color: #0f0; padding: 6px 16px; border-radius: 4px;
+             cursor: pointer; font-family: monospace; font-size: 13px; }
+    button:hover { background: rgba(0,80,0,0.9); }
+    label { color: #0a0; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <canvas id="matrix-canvas"></canvas>
+  <div id="controls">
+    <label>скорост <input type="range" min="1" max="5" step="1"
+                          value="3" id="speed-slider"></label>
+    <button id="btn-pause">пауза</button>
+    <button id="btn-color">смени цвят</button>
+  </div>
+
+<script>
+  const canvas = document.getElementById('matrix-canvas');
+  const ctx = canvas.getContext('2d');
+
+  const CYRILLIC =
+    'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯабвгдежзийклмнопрстуфхцчшщъьюя';
+
+  const COLORS = [
+    { head: '#ffffff', bright: '#00ff41', mid: '#009d2f', dim: '#004d17' },
+    { head: '#ffffff', bright: '#41c8ff', mid: '#0088cc', dim: '#004466' },
+    { head: '#ffffff', bright: '#ff4141', mid: '#cc0000', dim: '#660000' },
+  ];
+  const colorNames = ['зелено', 'синьо', 'червено'];
+  let colorIdx = 0;
+
+  const FONT_SIZE = 15;
+  let cols, drops, chars;
+  let paused = false;
+  let speed = 3;
+  let lastTime = 0;
+  const BASE_INTERVAL = 50;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    cols  = Math.floor(canvas.width / FONT_SIZE);
+    drops = new Array(cols).fill(0).map(() => Math.random() * -50 | 0);
+    chars = Array.from({ length: cols }, () =>
+      Array.from({ length: Math.ceil(canvas.height / FONT_SIZE) + 2 }, () =>
+        CYRILLIC[Math.random() * CYRILLIC.length | 0]
+      )
+    );
+  }
+
+  function draw(ts) {
+    if (!paused && ts - lastTime > BASE_INTERVAL / speed) {
+      lastTime = ts;
+      const C = COLORS[colorIdx];
+      const maxRows = Math.ceil(canvas.height / FONT_SIZE) + 2;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = FONT_SIZE + 'px monospace';
+
+      for (let i = 0; i < cols; i++) {
+        const row = drops[i];
+
+        if (Math.random() < 0.02) {
+          const r = ((row % maxRows) + maxRows) % maxRows;
+          chars[i][r] = CYRILLIC[Math.random() * CYRILLIC.length | 0];
+        }
+
+        for (let j = Math.max(0, row - 20); j <= row && j < maxRows; j++) {
+          if (j < 0) continue;
+          const dist = row - j;
+          ctx.fillStyle = dist === 0 ? C.head
+                        : dist < 3   ? C.bright
+                        : dist < 10  ? C.mid
+                        :              C.dim;
+          const idx = (j % maxRows + maxRows) % maxRows;
+          ctx.fillText(chars[i][idx], i * FONT_SIZE, j * FONT_SIZE);
+        }
+
+        if (drops[i] * FONT_SIZE > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  requestAnimationFrame(draw);
+
+  document.getElementById('btn-pause').addEventListener('click', function () {
+    paused = !paused;
+    this.textContent = paused ? 'продължи' : 'пауза';
+  });
+
+  document.getElementById('btn-color').addEventListener('click', function () {
+    colorIdx = (colorIdx + 1) % COLORS.length;
+    this.textContent = colorNames[colorIdx];
+  });
+
+  document.getElementById('speed-slider').addEventListener('input', function () {
+    speed = parseInt(this.value);
+  });
+<\/script>
+</body>
+</html>`;
+
+document.getElementById('code-block').textContent = raw;
+
+document.getElementById('copy-btn').addEventListener('click', function() {
+  navigator.clipboard.writeText(raw).then(() => {
+    this.textContent = 'Copied!';
+    setTimeout(() => this.textContent = 'Copy', 2000);
+  });
+});
+</script>
