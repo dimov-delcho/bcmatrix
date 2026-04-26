@@ -11,25 +11,23 @@ def main(stdscr):
 
     curses.start_color()
     curses.use_default_colors()
-    curses.init_pair(1, curses.COLOR_WHITE,   -1)  # head
-    curses.init_pair(2, curses.COLOR_GREEN,   -1)  # bright
-    curses.init_pair(3, curses.COLOR_GREEN,   -1)  # mid (dim applied)
-    curses.init_pair(4, curses.COLOR_BLACK,   -1)  # dim (bold=dark green trick)
+    curses.init_pair(1, curses.COLOR_WHITE, -1)
+    curses.init_pair(2, curses.COLOR_GREEN, -1)
+    curses.init_pair(3, curses.COLOR_GREEN, -1)
+    curses.init_pair(4, curses.COLOR_BLACK, -1)
 
     height, width = stdscr.getmaxyx()
-    cols = width
 
-    drops  = [random.randint(-height, 0) for _ in range(cols)]
-    trails = [random.randint(8, 20)       for _ in range(cols)]
+    drops  = [random.randint(-height, 0) for _ in range(width)]
+    trails = [random.randint(8, 20)       for _ in range(width)]
     chars  = [
         [random.choice(CYRILLIC) for _ in range(height + 22)]
-        for _ in range(cols)
+        for _ in range(width)
     ]
 
-    speed  = 0.05   # seconds per frame
+    speed  = 0.05
     paused = False
-
-    HELP = " [q]quit  [p]pause  [+/-]speed  [r]reset "
+    HELP   = " [q]quit  [p]pause  [+/-]speed "
 
     while True:
         key = stdscr.getch()
@@ -37,17 +35,17 @@ def main(stdscr):
             break
         elif key == ord('p'):
             paused = not paused
-        elif key == ord('+') or key == ord('='):
+        elif key in (ord('+'), ord('=')):
             speed = max(0.01, speed - 0.01)
         elif key == ord('-'):
-            speed = min(0.2, speed + 0.01)
+            speed = min(0.2,  speed + 0.01)
         elif key == ord('r'):
-            drops  = [random.randint(-height, 0) for _ in range(cols)]
-            trails = [random.randint(8, 20)       for _ in range(cols)]
+            drops  = [random.randint(-height, 0) for _ in range(width)]
+            trails = [random.randint(8, 20)       for _ in range(width)]
 
         if paused:
             try:
-                stdscr.addstr(0, 0, " ПАУЗА — натисни [p] за продължаване ",
+                stdscr.addstr(0, 0, " ПАУЗА — натисни [p] ",
                               curses.color_pair(1) | curses.A_BOLD)
             except curses.error:
                 pass
@@ -57,22 +55,19 @@ def main(stdscr):
         new_h, new_w = stdscr.getmaxyx()
         if new_h != height or new_w != width:
             height, width = new_h, new_w
-            cols   = width
-            drops  = [random.randint(-height, 0) for _ in range(cols)]
-            trails = [random.randint(8, 20)       for _ in range(cols)]
+            drops  = [random.randint(-height, 0) for _ in range(width)]
+            trails = [random.randint(8, 20)       for _ in range(width)]
             chars  = [
                 [random.choice(CYRILLIC) for _ in range(height + 22)]
-                for _ in range(cols)
+                for _ in range(width)
             ]
             stdscr.clear()
 
-        for i in range(cols):
+        for i in range(width):
             head = drops[i]
             tail = head - trails[i]
 
-            for row in range(height):
-                if row >= height - 1:
-                    continue
+            for row in range(height - 1):
                 dist = head - row
                 ch = chars[i][row % len(chars[i])]
 
@@ -88,19 +83,17 @@ def main(stdscr):
                     continue
 
                 try:
-                    stdscr.addch(row, i, ch, attr)
+                    stdscr.addstr(row, i, ch, attr)
                 except curses.error:
                     pass
 
-            # erase the cell just behind the tail
             erase_row = tail - 1
             if 0 <= erase_row < height - 1:
                 try:
-                    stdscr.addch(erase_row, i, ' ')
+                    stdscr.addstr(erase_row, i, ' ')
                 except curses.error:
                     pass
 
-            # randomly mutate a char in the trail
             if random.random() < 0.1:
                 r = random.randint(0, len(chars[i]) - 1)
                 chars[i][r] = random.choice(CYRILLIC)
@@ -110,7 +103,6 @@ def main(stdscr):
                 drops[i]  = random.randint(-10, 0)
                 trails[i] = random.randint(8, 20)
 
-        # help bar at the bottom
         try:
             stdscr.addstr(height - 1, 0,
                           HELP + ' ' * (width - len(HELP) - 1),
